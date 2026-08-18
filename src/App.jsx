@@ -1,122 +1,76 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import Flashcard from './components/Flashcard';
+import { generateFlashcards } from './services/gemini';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [file, setFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [flashcards, setFlashcards] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleImageUpload = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setImagePreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!file) return;
+    setLoading(true);
+    try {
+      const cards = await generateFlashcards(file);
+      setFlashcards(cards);
+    } catch (error) {
+      console.error(error);
+      alert('Error al procesar la imagen. Verifica tu clave de API o intenta con otra foto.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-6 flex flex-col items-center">
+      <header className="max-w-2xl w-full text-center my-8">
+        <h1 className="text-4xl font-extrabold text-indigo-600 mb-2">SnapStudy 📚</h1>
+        <p className="text-slate-600">Sube fotos de tus apuntes y genera tarjetas de estudio al instante</p>
+      </header>
 
-      <div className="ticks"></div>
+      <main className="max-w-2xl w-full space-y-6">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-dashed border-slate-300 text-center">
+          <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="file-upload" />
+          <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center py-4 text-slate-500 hover:text-indigo-600 transition">
+            <span className="text-4xl mb-2">📸</span>
+            <span className="font-semibold text-slate-700">Selecciona o toma una foto de tu apunte</span>
+          </label>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          {imagePreview && (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <img src={imagePreview} alt="Apunte cargado" className="max-h-56 mx-auto rounded-lg shadow-sm border border-slate-200 mb-4" />
+              <button
+                onClick={handleGenerate}
+                disabled={loading}
+                className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 transition disabled:opacity-50"
+              >
+                {loading ? 'Procesando apunte con IA...' : 'Generar Flashcards 🚀'}
+              </button>
+            </div>
+          )}
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {/* Renderizado dinámico de tarjetas */}
+        {flashcards.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-slate-800">Tus Flashcards ({flashcards.length})</h2>
+            <div className="grid grid-cols-1 gap-4">
+              {flashcards.map((card, index) => (
+                <Flashcard key={index} question={card.question} answer={card.answer} />
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
 }
-
-export default App
