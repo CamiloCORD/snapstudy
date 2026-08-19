@@ -1,12 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Flashcard from './components/Flashcard';
-import { generateFlashcards } from './services/gemini';
 
 export default function App() {
   const [file, setFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [flashcards, setFlashcards] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Cargar las flashcards guardadas en SQLite al cargar la app
+  useEffect(() => {
+    fetchFlashcards();
+  }, []);
+
+  const fetchFlashcards = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/flashcards');
+      const data = await res.json();
+      if (data.success) {
+        setFlashcards(data.flashcards);
+      }
+    } catch (error) {
+      console.error('Error al obtener flashcards:', error);
+    }
+  };
 
   const handleImageUpload = (e) => {
     const selectedFile = e.target.files[0];
@@ -19,12 +35,28 @@ export default function App() {
   const handleGenerate = async () => {
     if (!file) return;
     setLoading(true);
+
+    // Preparar la imagen para enviarla mediante FormData al servidor
+    const formData = new FormData();
+    formData.append('image', file);
+
     try {
-      const cards = await generateFlashcards(file);
-      setFlashcards(cards);
+      const res = await fetch('http://localhost:5000/api/generate', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Recargar la lista completa desde la base de datos
+        fetchFlashcards();
+      } else {
+        alert(data.error || 'Error al procesar la imagen.');
+      }
     } catch (error) {
       console.error(error);
-      alert('Error al procesar la imagen. Verifica tu clave de API o intenta con otra foto.');
+      alert('Error de conexión con el servidor backend.');
     } finally {
       setLoading(false);
     }
@@ -53,19 +85,19 @@ export default function App() {
                 disabled={loading}
                 className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 transition disabled:opacity-50"
               >
-                {loading ? 'Procesando apunte con IA...' : 'Generar Flashcards 🚀'}
+                {loading ? 'Procesando apunte con la IA...' : 'Generar Flashcards 🚀'}
               </button>
             </div>
           )}
         </div>
 
-        {/* Renderizado dinámico de tarjetas */}
+        {/* Renderizado de tarjetas guardadas en la BD */}
         {flashcards.length > 0 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Tus Flashcards ({flashcards.length})</h2>
+            <h2 className="text-xl font-bold text-slate-800">Tus Flashcards Guardadas ({flashcards.length})</h2>
             <div className="grid grid-cols-1 gap-4">
-              {flashcards.map((card, index) => (
-                <Flashcard key={index} question={card.question} answer={card.answer} />
+              {flashcards.map((card) => (
+                <Flashcard key={card.id || card.question} question={card.question} answer={card.answer} />
               ))}
             </div>
           </div>
