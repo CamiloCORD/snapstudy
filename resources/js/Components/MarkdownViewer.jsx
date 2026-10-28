@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 function CodeBlock({ children, className, ...props }) {
     const [copied, setCopied] = useState(false);
@@ -58,9 +61,10 @@ export default function MarkdownViewer({ content, className = '' }) {
     }
 
     return (
-        <div className={`markdown-body space-y-4 font-sans text-slate-700 dark:text-slate-200 leading-relaxed ${className}`}>
+        <div className={`markdown-body space-y-4 font-sans text-slate-700 dark:text-slate-200 leading-relaxed overflow-hidden ${className}`}>
             <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
                 components={{
                     h1: ({ children }) => (
                         <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mt-6 mb-3 pb-2 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">

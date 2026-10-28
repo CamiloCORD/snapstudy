@@ -79,6 +79,17 @@ export default function Show({ auth, post }) {
         }));
     };
 
+    const toggleAllCards = () => {
+        const allRevealed = flashcards.length > 0 && flashcards.every((_, idx) => revealed[idx]);
+        if (allRevealed) {
+            setRevealed({});
+        } else {
+            const all = {};
+            flashcards.forEach((_, idx) => { all[idx] = true; });
+            setRevealed(all);
+        }
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -158,28 +169,40 @@ export default function Show({ auth, post }) {
 
                         {/* Botones de control si ya existen flashcards */}
                         {flashcards.length > 0 && !isEditing && (
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-white font-bold rounded-xl hover:bg-slate-300 transition-all"
-                            >
-                                ✏️ Editar Tarjetas
-                            </button>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={toggleAllCards}
+                                    className="px-3.5 py-2 bg-white dark:bg-slate-700 text-slate-700 dark:text-white font-bold text-xs rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all shadow-xs"
+                                >
+                                    {flashcards.length > 0 && flashcards.every((_, idx) => revealed[idx])
+                                        ? '🙈 Ocultar todas'
+                                        : '👁️ Revelar todas'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(true)}
+                                    className="px-3.5 py-2 bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-bold text-xs rounded-xl hover:bg-purple-200 dark:hover:bg-purple-900 transition-all"
+                                >
+                                    ✏️ Editar Tarjetas
+                                </button>
+                            </div>
                         )}
                     </div>
 
                     {/* MODO EDICIÓN vs MODO ESTUDIO */}
                     {flashcards.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {flashcards.map((card, index) => (
                                 isEditing ? (
                                     /* VISTA DE EDICIÓN (Formularios) */
-                                    <div key={index} className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
+                                    <div key={index} className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col gap-3">
                                         <div>
-                                            <label className="text-xs font-bold text-purple-600 uppercase">Pregunta</label>
+                                            <label className="text-xs font-bold text-purple-600 uppercase">Pregunta {index + 1}</label>
                                             <textarea
                                                 value={card.pregunta}
                                                 onChange={(e) => handleCardChange(index, 'pregunta', e.target.value)}
-                                                className="w-full mt-1 p-2 border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:ring-purple-500"
+                                                className="w-full mt-1 p-2.5 border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:ring-purple-500 font-medium"
                                                 rows="3"
                                             />
                                         </div>
@@ -188,32 +211,88 @@ export default function Show({ auth, post }) {
                                             <textarea
                                                 value={card.respuesta}
                                                 onChange={(e) => handleCardChange(index, 'respuesta', e.target.value)}
-                                                className="w-full mt-1 p-2 border-slate-200 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:ring-emerald-500"
+                                                className="w-full mt-1 p-2.5 border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:ring-emerald-500 font-medium"
                                                 rows="3"
                                             />
                                         </div>
                                     </div>
                                 ) : (
-                                    /* VISTA DE ESTUDIO (Tarjetas que se voltean) */
+                                    /* VISTA DE ESTUDIO CON BOTONES EXPLÍCITOS Y LATEX */
                                     <div
                                         key={index}
                                         onClick={() => toggleCard(index)}
-                                        className={`relative w-full h-64 rounded-2xl cursor-pointer transition-all duration-500 shadow-md ${revealed[index] ? 'bg-purple-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white'
-                                            }`}
+                                        className={`relative w-full min-h-[19rem] rounded-3xl cursor-pointer transition-all duration-300 shadow-sm hover:shadow-xl p-6 flex flex-col justify-between border select-none group ${
+                                            revealed[index]
+                                                ? 'bg-gradient-to-br from-purple-700 via-indigo-700 to-purple-800 text-white border-purple-600 ring-2 ring-purple-400/30'
+                                                : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white border-slate-200/80 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600'
+                                        }`}
                                     >
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                                        {/* Cabecera de la tarjeta */}
+                                        <div className="flex justify-between items-center text-xs pb-3 border-b border-black/10 dark:border-white/10">
+                                            <span className={`font-bold px-2.5 py-1 rounded-full text-[11px] ${
+                                                revealed[index]
+                                                    ? 'bg-white/20 text-white'
+                                                    : 'bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300'
+                                            }`}>
+                                                Tarjeta {index + 1} de {flashcards.length}
+                                            </span>
+                                            <span className="font-semibold text-xs opacity-80">
+                                                {revealed[index] ? '✅ Respuesta' : '❓ Pregunta'}
+                                            </span>
+                                        </div>
+
+                                        {/* Cuerpo con texto / LaTeX */}
+                                        <div className="my-auto py-4 text-center">
                                             {revealed[index] ? (
-                                                <>
-                                                    <span className="text-xs uppercase font-bold text-purple-200 mb-3">Respuesta</span>
-                                                    <p className="font-bold text-lg">{card.respuesta}</p>
-                                                </>
+                                                <div className="space-y-2">
+                                                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-200">
+                                                        Respuesta
+                                                    </span>
+                                                    <div className="text-white [&_*]:text-white">
+                                                        <MarkdownViewer content={card.respuesta} className="text-center font-bold text-base md:text-lg leading-snug" />
+                                                    </div>
+                                                </div>
                                             ) : (
-                                                <>
-                                                    <span className="text-xs uppercase font-bold text-purple-500 mb-3">Pregunta {index + 1}</span>
-                                                    <p className="font-bold text-lg">{card.pregunta}</p>
-                                                    <span className="mt-4 text-xs text-slate-400">Toca para revelar</span>
-                                                </>
+                                                <div className="space-y-2">
+                                                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                                                        Pregunta
+                                                    </span>
+                                                    <div>
+                                                        <MarkdownViewer content={card.pregunta} className="text-center font-bold text-base md:text-lg leading-snug" />
+                                                    </div>
+                                                </div>
                                             )}
+                                        </div>
+
+                                        {/* Botón explícito para mostrar / ocultar la respuesta */}
+                                        <div className="pt-3 border-t border-black/10 dark:border-white/10 flex items-center justify-between">
+                                            <span className="text-[11px] opacity-60">
+                                                {revealed[index] ? 'Clic para ocultar' : 'Clic para voltear'}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleCard(index);
+                                                }}
+                                                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95 ${
+                                                    revealed[index]
+                                                        ? 'bg-white text-purple-800 hover:bg-purple-50 shadow-md'
+                                                        : 'bg-purple-600 hover:bg-purple-700 text-white shadow-md'
+                                                }`}
+                                            >
+                                                {revealed[index] ? (
+                                                    <>
+                                                        <span>🔄</span>
+                                                        <span>Ocultar Respuesta</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span>👁️</span>
+                                                        <span>Mostrar Respuesta</span>
+                                                    </>
+                                                )}
+                                            </button>
                                         </div>
                                     </div>
                                 )

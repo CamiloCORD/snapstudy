@@ -39,7 +39,8 @@ class GeminiAiService
         $prompt = 'Analiza esta imagen que contiene apuntes escolares o universitarios. '.
             'Actúa como un estudiante de excelencia y digitalizador profesional. '.
             '1) Crea un título corto, claro y representativo del tema. '.
-            '2) Transcribe y estructura el contenido de forma organizada utilizando Markdown enriquecido (encabezados, negritas, listas ordenadas y viñetas).';
+            '2) Transcribe y estructura el contenido de forma organizada utilizando Markdown enriquecido (encabezados, negritas, listas ordenadas y viñetas). '.
+            'Si encuentras ecuaciones, fórmulas matemáticas o notación científica, transcríbelas en formato LaTeX estándar utilizando $$...$$ para fórmulas en bloque y $...$ para expresiones en línea.';
 
         $payload = [
             'contents' => [
