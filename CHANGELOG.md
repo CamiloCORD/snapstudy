@@ -2,6 +2,43 @@
 
 Todos los cambios notables de este proyecto estarán documentados en este archivo.
 
+## [Fase 2] - 2026-10-28
+### Rediseño de Navegación, Soporte de LaTeX / Markdown Enriquecido, Mejoras en Flashcards y Solución de Imágenes
+
+#### Añadido
+- **Identidad de Marca SnapStudy (`resources/js/Components/ApplicationLogo.jsx`)**: Logotipo propio vectorial con isotipo (cuaderno de notas + destello IA) y tipografía de marca `SnapStudy AI`.
+- **Renderizador de Markdown y Fórmulas LaTeX (`resources/js/Components/MarkdownViewer.jsx`)**:
+  - Procesamiento enriquecido de Markdown usando `react-markdown` y `remark-gfm`.
+  - Soporte matemático y científico completo para fórmulas en bloque (`$$...$$`) y en línea (`$...$`) con `remark-math`, `rehype-katex` y `katex`.
+  - Bloques de código con cabecera de lenguaje, formato monoespaciado y botón interactivo para copiar con confirmación visual.
+  - Citas, tablas responsive y tipografía estructurada para lectura académica.
+- **Utilidad de Limpieza de Texto (`resources/js/Utils/text.js`)**:
+  - Función `stripMarkdown(content)` para limpiar símbolos de formato (`#`, `**`, `$$`, viñetas, enlaces) en snippets y tarjetas de vista previa.
+- **Pestaña de Previsualización en Creación (`resources/js/Pages/Posts/Create.jsx`)**: Selector de pestañas `[ ✏️ Editor ]` y `[ 👁️ Vista Previa Formato ]` para inspeccionar el texto extraído por la IA antes de guardarlo.
+- **Botones Interactivos en Flashcards (`resources/js/Pages/Posts/Show.jsx`)**:
+  - Botón explícito `[ 👁️ Mostrar Respuesta ]` y `[ 🔄 Ocultar Respuesta ]` en cada tarjeta de estudio.
+  - Botón global `[ 👁️ Revelar todas ]` / `[ 🙈 Ocultar todas ]` para alternar la visualización de todas las tarjetas.
+  - Integración de `MarkdownViewer` en preguntas y respuestas para renderizar fórmulas matemáticas en las tarjetas.
+- **Acceso Directo y Seguro a Imágenes (`app/Models/Post.php`)**: Accessor `image_url` en el modelo Eloquent para resolver la ruta absoluta mediante `Storage::disk('public')->url()`.
+- **Fallback Visual para Imágenes (`resources/js/Pages/Explore.jsx` y `Show.jsx`)**: Placeholders elegantes con diseño de cuaderno e icono para evitar mostrar el icono roto nativo del navegador ante fallas de carga o 404.
+
+#### Modificado
+- **Barra de Navegación Superior (`resources/js/Layouts/AuthenticatedLayout.jsx`)**:
+  - Reemplazo del logo genérico de Laravel por el logo propio de SnapStudy con enlace a `route('dashboard')`.
+  - División de la barra en tres zonas: Marca/VARK (izquierda), Navegación Dashboard/Explorar (centro) y Botón CTA "+ Nuevo Apunte" con menú de usuario y avatar (derecha).
+  - Menú móvil colapsable adaptado con todas las opciones y accesos rápidos.
+  - Estilos de píldora activa en `NavLink.jsx` y `ResponsiveNavLink.jsx`.
+- **Estilo Unificado en Invitados (`GuestLayout.jsx` y `Welcome.jsx`)**: Integración del nuevo `ApplicationLogo` con tipografía de marca.
+- **Prompt de Gemini OCR (`app/Services/GeminiAiService.php`)**: Se instruye explícitamente a Gemini para transcribir fórmulas matemáticas y científicas en notación LaTeX estándar (`$$...$$` y `$...$`).
+- **Limpieza de Snippets y Previsualizaciones (`resources/js/Pages/Explore.jsx` y `Dashboard.jsx`)**: Integración completa de la utilidad `stripMarkdown` para asegurar que las tarjetas de exploración comunitaria y del dashboard de estudio muestren resúmenes en texto plano limpio, purgando por completo caracteres de encabezados (`#`), formato en negrita (`**`), fórmulas (`$$`), enlaces, viñetas y bloques de código.
+- **Configuración de Entorno (`.env.example` y `.env`)**:
+  - Base de datos local SQLite configurada por defecto (`DB_CONNECTION=sqlite`) para ejecución instantánea sin dependencias externas.
+  - Documentación completa del Connection Pooler de Supabase en AWS `us-east-1` (`aws-0-us-east-1.pooler.supabase.com`) con compatibilidad IPv4 y SSL requerido.
+- **Configuración de Testing (`phpunit.xml`)**: Añadida clave dummy `GEMINI_API_KEY` para ejecución offline de la suite de pruebas Pest.
+
+#### Mantenimiento y Base de Datos
+- **Purga y Reconstrucción de Base de Datos**: Ejecución de `php artisan migrate:fresh` para limpiar la base de datos por completo y restablecer todas las tablas desde cero de forma limpia y consistente (tanto en esquema local SQLite como en Supabase PostgreSQL).
+
 ## [Fase 1] - 2026-10-27
 ### Refactorización Arquitectónica: Migración a Google Gemini y Limpieza Backend
 

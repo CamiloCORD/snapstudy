@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { stripMarkdown } from '@/Utils/text';
 
 export default function Explore({ auth, posts, subjects, filters }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -136,8 +137,8 @@ export default function Explore({ auth, posts, subjects, filters }) {
                                         <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-2 line-clamp-1">
                                             {post.title}
                                         </h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-4">
-                                            {post.content}
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-4 leading-relaxed">
+                                            {stripMarkdown(post.content)}
                                         </p>
                                     </div>
                                 </div>

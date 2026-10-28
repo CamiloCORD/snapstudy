@@ -21,12 +21,14 @@ Bienvenido al repositorio de **SnapStudy**. Este documento contiene la configura
 
 | Capa | Tecnologías | Notas |
 | :--- | :--- | :--- |
-| **Backend** | PHP 8.2+, Laravel 12 | Enrutamiento web, controladores delgados, form requests, policies y migraciones. |
+| **Backend** | PHP 8.2+, Laravel 12 | Enrutamiento web, controladores delgados, form requests, policies y migraciones. Accessors como `image_url`. |
 | **Frontend** | React 18, Inertia.js v2, Vite 7 | SPA monolítica moderna sin API REST desacoplada; renderizado e interacción vía Inertia v2 (`@inertiajs/react`). |
-| **Estilos & UI** | Tailwind CSS 3/4, Headless UI, Heroicons | Diseño moderno, responsivo y accesible. |
+| **Estilos & UI** | Tailwind CSS 3/4, Headless UI, Heroicons, KaTeX CSS | Diseño moderno, responsivo, accesible y tipografía matemática (`katex/dist/katex.min.css`). |
 | **Herramientas Cliente** | `react-cropper`, `axios`, `ziggy-js` | Recorte interactivo de imágenes y resolución de rutas de Laravel en React. |
-| **IA & Multimodalidad** | Google Gemini API (`gemini-3.1-flash-lite`) | Extracción OCR mediante vision prompts (`inline_data`) y generación estructurada de JSON vía `generationConfig` y `responseSchema`. |
-| **Base de Datos** | SQLite (por defecto en local) / PostgreSQL (producción/Supabase) | Relaciones Eloquent: Users, Posts, Flashcards, Comments, Interactions, SavedPosts. |
+| **Markdown & LaTeX** | `react-markdown`, `remark-gfm`, `remark-math`, `rehype-katex` | Renderizado interactivo con `<MarkdownViewer />` de encabezados, listas, tablas, fórmulas (`$$...$$`, `$...$`) y bloques de código con botón de copiado. |
+| **Utilidades UI** | `@/Utils/text` (`stripMarkdown`) | Extracción de texto plano para previsualizaciones de apuntes en Explorer y Dashboard. |
+| **IA & Multimodalidad** | Google Gemini API (`gemini-3.1-flash-lite`) | Extracción OCR mediante vision prompts (`inline_data`) con fórmulas LaTeX y generación estructurada de JSON vía `generationConfig` y `responseSchema`. |
+| **Base de Datos** | SQLite (desarrollo local) / PostgreSQL (Supabase Pooler en AWS `us-east-1`) | Relaciones Eloquent: Users, Posts, Flashcards, Comments, Interactions, SavedPosts. |
 | **Testing & Calidad** | Pest PHP v3, PHPUnit, Laravel Pint | Pruebas de integración/features y formateador de código PSR-12. |
 
 ---
@@ -151,6 +153,10 @@ snapstudy-laravel/
 2. **Rutas**: Utilizar siempre el helper global `route('nombre.de.ruta')` provisto por Ziggy, evitando URLs duras (`/posts/123`).
 3. **Manejo de Estados Asíncronos**: Durante llamadas a la IA (extracción de texto o generación de flashcards), mostrar spinners, deshabilitar botones y presentar mensajes claros ante fallos de conexión.
 4. **Optimización de Assets**: Mantener el uso de `react-cropper` para permitir que el usuario suba únicamente el fragmento relevante de su apunte físico, ahorrando ancho de banda y mejorando la precisión del modelo OCR.
+5. **Renderizado de Markdown y Matemáticas (KaTeX)**: Todo apunte o flashcard generado con formato debe renderizarse a través de `<MarkdownViewer content={...} />`. Prohibido renderizar Markdown crudo en `<p>` ni usar `dangerouslySetInnerHTML`.
+6. **Previsualizaciones Limpias (Sin Markdown)**: En feeds o tarjetas de resumen (`Explore.jsx`, `Dashboard.jsx`), todo extracto de contenido debe ser procesado con `stripMarkdown(post.content)` ubicado en `@/Utils/text` para evitar mostrar símbolos de sintaxis como `**`, `#`, `$$`, o viñetas.
+7. **Manejo Seguro de Imágenes y Fallbacks**: Consumir siempre `post.image_url` y envolver las imágenes con `onError` y contenedores `.fallback-placeholder` para asegurar que ante fallas 404 nunca se muestre el icono de imagen rota nativo.
+8. **Interactividad en Flashcards**: Cada tarjeta de estudio debe incluir controles claros de visualización (`👁️ Mostrar Respuesta` / `🔄 Ocultar Respuesta`), así como un conmutador general para revelar o esconder todas las respuestas al estudiar.
 
 ### Reglas para Testing
 1. **Framework**: Usar Pest PHP (`./vendor/bin/pest` o `php artisan test`).
