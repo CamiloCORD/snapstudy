@@ -23,6 +23,8 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
-        "react-cropper": "^2.3.3"
+        "react-cropper": "^2.3.3",
+        "react-markdown": "^10.1.0",
+        "remark-gfm": "^4.0.1"
     }
 }

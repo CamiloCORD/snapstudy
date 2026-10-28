@@ -96,18 +96,26 @@ export default function Explore({ auth, posts, subjects, filters }) {
                             <div key={post.id} className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all flex flex-col justify-between">
                                 <div>
                                     {/* Imagen */}
-                                    <div className="h-40 bg-slate-100 dark:bg-slate-900 relative">
-                                        {post.image ? (
+                                    <div className="h-44 bg-gradient-to-tr from-slate-100 to-purple-50 dark:from-slate-900 dark:to-slate-800 relative overflow-hidden">
+                                        {(post.image_url || post.image) ? (
                                             <img
-                                                src={`/storage/${post.image}`}
+                                                src={post.image_url || `/storage/${post.image}`}
                                                 alt={post.title}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    const fallback = e.currentTarget.parentElement?.querySelector('.fallback-placeholder');
+                                                    if (fallback) fallback.style.display = 'flex';
+                                                }}
                                             />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs font-medium">
-                                                Sin portada
-                                            </div>
-                                        )}
+                                        ) : null}
+                                        <div
+                                            className="fallback-placeholder w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-xs font-semibold gap-1.5 p-4 text-center"
+                                            style={{ display: (post.image_url || post.image) ? 'none' : 'flex' }}
+                                        >
+                                            <span className="text-2xl">📝</span>
+                                            <span>Apunte de {post.subject || 'Estudio'}</span>
+                                        </div>
                                         <span className="absolute top-3 left-3 px-3 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm text-xs font-bold text-purple-600 dark:text-purple-400 rounded-lg shadow-sm">
                                             {post.subject || 'General'}
                                         </span>

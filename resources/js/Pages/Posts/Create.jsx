@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import MarkdownViewer from '@/Components/MarkdownViewer';
 import axios from 'axios';
 
 // 1. Importamos el Cropper y sus estilos CSS
@@ -26,36 +27,41 @@ export default function Create({ auth }) {
     });
 
     const [isExtracting, setIsExtracting] = useState(false);
+    const [scanError, setScanError] = useState(null);
+    const [contentTab, setContentTab] = useState('edit'); // 'edit' | 'preview'
     
     // Estados para el editor de imágenes
     const [imageSrc, setImageSrc] = useState(null); // Imagen original para editar
-    const [imagePreview, setImagePreview] = useState(null); // Imagen ya recortada
+    const [imagePreview, setImagePreview] = useState(null); // Imagen previsualizada (recortada o normal)
     const [isEditing, setIsEditing] = useState(false); // ¿Está abierto el editor?
     const cropperRef = useRef(null); // Referencia al componente del editor
 
     // Cuando el usuario selecciona un archivo de su PC o cámara
     const handleImageChange = (e) => {
-    try {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                setImageSrc(reader.result);
-                setIsEditing(true); // Abrimos el modo de edición
-            };
-            // Captura errores al leer el archivo con FileReader
-            reader.onerror = (error) => {
-                console.error('Error al leer la imagen:', error);
-                setScanError('No se pudo leer el archivo seleccionado. Intenta con otra imagen.');
-            };
-            reader.readAsDataURL(file);
+        try {
+            setScanError(null);
+            const file = e.target.files[0];
+            if (file) {
+                // Asignamos el archivo inmediatamente al formulario y a la previsualización
+                setData('image', file);
+                setImagePreview(URL.createObjectURL(file));
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    setImageSrc(reader.result);
+                    setIsEditing(true); // Abrimos el modo de edición / recorte
+                };
+                reader.onerror = (error) => {
+                    console.error('Error al leer la imagen:', error);
+                    setScanError('No se pudo leer el archivo seleccionado. Intenta con otra imagen.');
+                };
+                reader.readAsDataURL(file);
+            }
+        } catch (error) {
+            console.error('Error inesperado al seleccionar la imagen:', error);
+            setScanError('Ocurrió un error al procesar la imagen.');
         }
-    } catch (error) {
-        // Captura excepciones durante la selección
-        console.error('Error inesperado al seleccionar la imagen:', error);
-        setScanError('Ocurrió un error al procesar la imagen.');
-    }
-};
+    };
 
     // Función para confirmar el recorte
     const handleCropSave = () => {
@@ -258,14 +264,58 @@ export default function Create({ auth }) {
                                 />
                             </div>
 
+                            {scanError && (
+                                <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-600 dark:text-red-400">
+                                    ⚠️ {scanError}
+                                </div>
+                            )}
+
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Contenido</label>
-                                <textarea
-                                    rows="10"
-                                    value={data.content}
-                                    onChange={(e) => setData('content', e.target.value)}
-                                    className="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:border-purple-500 focus:ring-purple-500 font-sans leading-relaxed"
-                                ></textarea>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
+                                        Contenido del Apunte
+                                    </label>
+                                    
+                                    {/* Tabs Editor vs Vista Previa Markdown */}
+                                    <div className="flex bg-slate-100 dark:bg-slate-700/60 p-1 rounded-xl text-xs font-semibold">
+                                        <button
+                                            type="button"
+                                            onClick={() => setContentTab('edit')}
+                                            className={`px-3 py-1 rounded-lg transition-all ${
+                                                contentTab === 'edit'
+                                                    ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-300 shadow-xs'
+                                                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                                            }`}
+                                        >
+                                            ✏️ Editor
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setContentTab('preview')}
+                                            className={`px-3 py-1 rounded-lg transition-all ${
+                                                contentTab === 'preview'
+                                                    ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-300 shadow-xs'
+                                                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                                            }`}
+                                        >
+                                            👁️ Vista Previa Formato
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {contentTab === 'edit' ? (
+                                    <textarea
+                                        rows="10"
+                                        value={data.content}
+                                        onChange={(e) => setData('content', e.target.value)}
+                                        placeholder="Escribe aquí o extrae el texto automáticamente desde tu foto con el botón '✨ Extraer con IA'..."
+                                        className="w-full rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white focus:border-purple-500 focus:ring-purple-500 font-sans leading-relaxed"
+                                    ></textarea>
+                                ) : (
+                                    <div className="min-h-[250px] p-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/60 overflow-y-auto">
+                                        <MarkdownViewer content={data.content || '*Aún no hay contenido para previsualizar. Escribe algo o extrae el texto de una foto.*'} />
+                                    </div>
+                                )}
                             </div>
 
                         </div>

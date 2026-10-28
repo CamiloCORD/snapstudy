@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import MarkdownViewer from '@/Components/MarkdownViewer';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
 import axios from 'axios';
@@ -10,6 +11,7 @@ export default function Show({ auth, post }) {
     const [isEditing, setIsEditing] = useState(false); // Controla el modo edición
     const [isSaving, setIsSaving] = useState(false);
     const [revealed, setRevealed] = useState({});
+    const [imageError, setImageError] = useState(false);
 
     const { data, setData, post: submitComment, processing, reset, errors } = useForm({
         content: '',
@@ -97,20 +99,39 @@ export default function Show({ auth, post }) {
 
                 {/* APUNTE PRINCIPAL */}
                 <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700">
-                    {post.image && (
-                        <div className="w-full h-64 sm:h-96 relative bg-slate-100 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700">
-                            <img src={`/storage/${post.image}`} alt={post.title} className="w-full h-full object-contain p-4" />
+                    {(post.image_url || post.image) && !imageError && (
+                        <div className="w-full h-72 sm:h-96 relative bg-slate-900 border-b border-slate-100 dark:border-slate-700 flex items-center justify-center overflow-hidden group">
+                            <img
+                                src={post.image_url || `/storage/${post.image}`}
+                                alt={post.title}
+                                onError={() => setImageError(true)}
+                                className="w-full h-full object-contain p-4 transition-transform duration-300 group-hover:scale-[1.02]"
+                            />
+                            <a
+                                href={post.image_url || `/storage/${post.image}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="absolute bottom-4 right-4 px-3 py-1.5 rounded-xl bg-black/70 hover:bg-black/90 backdrop-blur-md text-white text-xs font-semibold flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                                <span>🔍</span> Ver imagen original
+                            </a>
                         </div>
                     )}
                     <div className="p-8 md:p-12 border-b border-slate-100 dark:border-slate-700">
-                        <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">
+                        <div className="flex flex-wrap items-center gap-3 mb-4">
+                            <span className="px-3 py-1 rounded-xl text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/80 dark:text-purple-300">
+                                {post.subject || 'General'}
+                            </span>
+                            <span className="text-xs text-slate-400">
+                                Creado por <strong className="text-slate-700 dark:text-slate-200">{post.user?.name || 'Estudiante'}</strong>
+                            </span>
+                        </div>
+                        <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white leading-tight">
                             {post.title}
                         </h1>
                     </div>
                     <div className="p-8 md:p-12">
-                        <div className="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed text-lg whitespace-pre-wrap font-medium">
-                            {post.content}
-                        </div>
+                        <MarkdownViewer content={post.content} />
                     </div>
                 </div>
 

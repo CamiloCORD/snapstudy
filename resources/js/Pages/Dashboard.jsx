@@ -137,7 +137,9 @@ export default function Dashboard({ auth, stats, recentPosts, savedPosts = [] })
                                                     {post.subject || 'General'}
                                                 </span>
                                                 <h4 className="font-bold text-slate-800 dark:text-white mt-2 mb-1 line-clamp-1">{post.title}</h4>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">{post.content}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">
+                                                    {post.content ? post.content.replace(/[#*`_~]/g, '') : ''}
+                                                </p>
                                             </div>
                                             <div className="flex justify-between items-center border-t border-slate-200/50 dark:border-slate-800 pt-3">
                                                 <span className="text-xs text-slate-400 font-medium">🎴 {post.flashcards_count || 0} Tarjetas</span>
@@ -178,7 +180,9 @@ export default function Dashboard({ auth, stats, recentPosts, savedPosts = [] })
                                                     <span className="text-[10px] text-slate-400 font-medium">Por: {post.user?.name || 'Estudiante'}</span>
                                                 </div>
                                                 <h4 className="font-bold text-slate-800 dark:text-white mb-1 line-clamp-1">{post.title}</h4>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">{post.content}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4">
+                                                    {post.content ? post.content.replace(/[#*`_~]/g, '') : ''}
+                                                </p>
                                             </div>
                                             <div className="flex justify-between items-center border-t border-slate-200/50 dark:border-slate-800 pt-3">
                                                 <span className="text-xs text-slate-400 font-medium">🎴 {post.flashcards_count || 0} Tarjetas</span>

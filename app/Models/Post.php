@@ -24,6 +24,23 @@ class Post extends Model
         'is_public' => 'boolean',
     ];
 
+    protected $appends = [
+        'image_url',
+    ];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+
+        return asset('storage/'.ltrim($this->image, '/'));
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
