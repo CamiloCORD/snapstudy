@@ -10,6 +10,7 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'title',
         'content',
         'image_path',
@@ -17,6 +18,8 @@ class Post extends Model
         'subject',
         'is_public',
         'image',
+        'status',
+        'moderation_notes',
     ];
 
     protected $casts = [
@@ -76,5 +79,30 @@ class Post extends Model
     public function savedByUsers()
     {
         return $this->belongsToMany(User::class, 'saved_posts')->withTimestamps();
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function aiUsageLogs()
+    {
+        return $this->hasMany(AiUsageLog::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopePendingReview($query)
+    {
+        return $query->where('status', 'pending_review');
+    }
+
+    public function scopePublicActive($query)
+    {
+        return $query->where('is_public', true)->where('status', 'active');
     }
 }

@@ -20,6 +20,18 @@ class PostPolicy
      */
     public function view(?User $user, Post $post): bool
     {
+        if ($user !== null && $user->isAdmin()) {
+            return true;
+        }
+
+        if ($post->status === 'hidden') {
+            return false;
+        }
+
+        if ($post->status === 'pending_review') {
+            return $user !== null && $user->id === $post->user_id;
+        }
+
         if ($post->is_public) {
             return true;
         }
@@ -40,7 +52,7 @@ class PostPolicy
      */
     public function update(User $user, Post $post): bool
     {
-        return $user->id === $post->user_id;
+        return $user->id === $post->user_id || $user->isAdmin();
     }
 
     /**
@@ -48,6 +60,6 @@ class PostPolicy
      */
     public function delete(User $user, Post $post): bool
     {
-        return $user->id === $post->user_id;
+        return $user->id === $post->user_id || $user->isAdmin();
     }
 }

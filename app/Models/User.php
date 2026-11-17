@@ -23,7 +23,23 @@ class User extends Authenticatable
         'email',
         'password',
         'learning_style', // Agrega esto
+        'role',
     ];
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
+    public function aiUsageLogs()
+    {
+        return $this->hasMany(AiUsageLog::class);
+    }
 
     // --- Agrega estas relaciones al final de la clase ---
     public function posts()

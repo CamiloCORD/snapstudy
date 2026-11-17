@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Models\User;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -70,6 +72,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
         Route::post('/posts/{post}/save', [PostController::class, 'toggleSave'])->name('posts.save');
         Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+        Route::post('/posts/{post}/report', [ReportController::class, 'store'])->name('posts.report');
+    });
+
+    // Módulo de Administración (RF15, RF16, CU20, CU21)
+    Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/moderacion', [AdminController::class, 'moderation'])->name('moderation');
+        Route::post('/posts/{post}/moderate', [AdminController::class, 'moderatePost'])->name('posts.moderate');
+        Route::post('/reports/{report}/resolve', [AdminController::class, 'resolveReport'])->name('reports.resolve');
+        Route::get('/ia-usage', [AdminController::class, 'aiUsage'])->name('ai-usage');
     });
 
     // Feed Social & Interacción

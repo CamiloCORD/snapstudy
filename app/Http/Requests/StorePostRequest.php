@@ -28,6 +28,7 @@ class StorePostRequest extends FormRequest
             'content' => ['required', 'string'],
             'image' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
             'is_public' => ['nullable', 'boolean'],
+            'is_educational' => ['nullable', 'boolean'],
         ];
     }
 }

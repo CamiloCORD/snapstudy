@@ -35,6 +35,15 @@ class PostController extends Controller
         $validated = $request->validated();
         $validated['is_public'] = $request->boolean('is_public', false);
 
+        // Si la extracción de IA detectó que no es netamente educativo, entra a revisión
+        $isEducational = $request->boolean('is_educational', true);
+        if (! $isEducational) {
+            $validated['status'] = 'pending_review';
+            $validated['moderation_notes'] = 'Marcado automáticamente por la IA para revisión preventiva (contenido posiblemente no educativo).';
+        } else {
+            $validated['status'] = 'active';
+        }
+
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('apuntes', 'public');
             $validated['image'] = $path;
@@ -42,7 +51,11 @@ class PostController extends Controller
 
         $request->user()->posts()->create($validated);
 
-        return redirect()->route('dashboard')->with('success', '¡Apunte creado con éxito!');
+        $message = ($validated['status'] === 'pending_review')
+            ? 'Apunte guardado. Ha ingresado a revisión preventiva antes de ser publicado en la comunidad.'
+            : 'Apunte creado con éxito.';
+
+        return redirect()->route('dashboard')->with('success', $message);
     }
 
     // 1. Extraer texto estructurado de la imagen usando Google Gemini API nativo
@@ -61,10 +74,18 @@ class PostController extends Controller
 
             $result = $this->gemini->extractTextFromImage($image);
 
+            if (! ($result['has_legible_text'] ?? true)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se detectó texto legible en la imagen. Por favor sube una fotografía clara de tus apuntes.',
+                ], 422);
+            }
+
             return response()->json([
                 'success' => true,
                 'title' => $result['title'],
                 'content' => $result['content'],
+                'is_educational' => (bool) ($result['is_educational'] ?? true),
             ]);
         } catch (Throwable $e) {
             $code = $e->getCode();
@@ -150,6 +171,7 @@ class PostController extends Controller
         $user = $request->user();
 
         $query = Post::where('is_public', true)
+            ->where('status', 'active')
             ->with('user')
             ->withCount('flashcards')
             ->latest();
@@ -174,6 +196,7 @@ class PostController extends Controller
 
         $posts = $query->paginate(12)->withQueryString();
         $subjects = Post::where('is_public', true)
+            ->where('status', 'active')
             ->whereNotNull('subject')
             ->distinct()
             ->pluck('subject');

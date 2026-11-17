@@ -24,10 +24,12 @@ export default function Create({ auth }) {
         content: '',
         image: null,
         is_public: true,
+        is_educational: true,
     });
 
     const [isExtracting, setIsExtracting] = useState(false);
     const [scanError, setScanError] = useState(null);
+    const [moderationNotice, setModerationNotice] = useState(null);
     const [contentTab, setContentTab] = useState('edit'); // 'edit' | 'preview'
     
     // Estados para el editor de imágenes
@@ -100,11 +102,19 @@ export default function Create({ auth }) {
             });
 
             if (response.data.success) {
+                const isEdu = response.data.is_educational !== undefined ? response.data.is_educational : true;
                 setData(current => ({
                     ...current,
                     title: response.data.title || current.title,
                     content: response.data.content || current.content,
+                    is_educational: isEdu,
                 }));
+
+                if (!isEdu) {
+                    setModerationNotice('La IA detecto que esta imagen podria no corresponder a apuntes academicos. Al guardar el apunte, permanecera en revision preventiva antes de publicarse.');
+                } else {
+                    setModerationNotice(null);
+                }
             }
         } catch (error) {
             console.error('Error al extraer texto con IA:', error);
@@ -133,6 +143,18 @@ export default function Create({ auth }) {
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
                     <form onSubmit={submit} className="space-y-6">
                         
+                        {moderationNotice && (
+                            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-4 text-amber-900 dark:text-amber-200 text-sm flex items-start gap-3">
+                                <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div>
+                                    <strong className="font-bold block">Aviso de revision preventiva</strong>
+                                    <span>{moderationNotice}</span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* ZONA 1: ZONA MÁGICA DE IMAGEN */}
                         <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-3">
