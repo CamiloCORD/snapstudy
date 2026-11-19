@@ -1,13 +1,27 @@
 # 📚 SnapStudy
 
 <p align="center">
+  <a href="https://www.snapstudy.cloud/" target="_blank">
+    <img src="https://img.shields.io/badge/🚀_Demo_en_Producción-https%3A%2F%2Fwww.snapstudy.cloud-7C3AED?style=for-the-badge&logo=googlechrome&logoColor=white" alt="SnapStudy en Vivo">
+  </a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12">
   <img src="https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18">
   <img src="https://img.shields.io/badge/Inertia.js-v2.x-9553E9?style=for-the-badge&logo=inertia&logoColor=white" alt="Inertia.js v2">
   <img src="https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
   <img src="https://img.shields.io/badge/Google_Gemini-3.1_Flash--Lite-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google Gemini API">
+  <img src="https://img.shields.io/badge/KaTeX-LaTeX_Math-3298DC?style=for-the-badge&logo=latex&logoColor=white" alt="KaTeX Math">
   <img src="https://img.shields.io/badge/Pest_PHP-v3.x-9E66FF?style=for-the-badge&logo=pest&logoColor=white" alt="Pest PHP">
 </p>
+
+---
+
+> 🌐 **Plataforma en Producción Activa:**  
+> Puedes acceder y probar la aplicación desplegada en vivo en su dominio oficial:  
+> 👉 **[https://www.snapstudy.cloud/](https://www.snapstudy.cloud/)**  
+> *(Alojada en un servidor VPS Linux con proxy inverso Nginx, HTTP/2, certificados SSL/TLS de Let's Encrypt y base de datos relacional transaccional).*
 
 ---
 
@@ -144,34 +158,50 @@ snapstudy/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── CommentController.php   # Creación y eliminación de comentarios protegida por Policy
+│   │   │   ├── AdminController.php      # Panel de moderación preventiva y auditoría de IA (CU20, CU21)
+│   │   │   ├── CommentController.php    # Creación y eliminación de comentarios protegida por Policy
 │   │   │   ├── OnboardingController.php # Diagnóstico cognitivo VARK
-│   │   │   ├── PostController.php      # Controlador delgado de apuntes (Inyecta GeminiAiService)
-│   │   │   └── ProfileController.php   # Perfil y cuenta de usuario
-│   │   └── Requests/                   # Form Requests dedicados (StorePost, ExtractOcr, etc.)
+│   │   │   ├── PostController.php       # Controlador de apuntes, OCR y generación de flashcards
+│   │   │   ├── ProfileController.php    # Perfil y cuenta de usuario
+│   │   │   └── ReportController.php     # Gestión de denuncias comunitarias (CU19)
+│   │   ├── Middleware/
+│   │   │   └── EnsureUserIsAdmin.php    # Control de acceso exclusivo para rol 'admin'
+│   │   └── Requests/                    # Form Requests dedicados (StorePost, ExtractOcr, Moderate, etc.)
 │   ├── Models/
-│   │   ├── Post.php                    # Modelo central de apuntes
-│   │   ├── Flashcard.php               # Tarjetas pedagógicas generadas
-│   │   ├── Comment.php                 # Interacciones de comentarios
-│   │   └── User.php                    # Usuario con estilo de aprendizaje VARK
-│   ├── Policies/                       # Autorización granular (PostPolicy, CommentPolicy)
+│   │   ├── AiUsageLog.php               # Métricas de consumo de tokens y latencia de IA
+│   │   ├── Comment.php                  # Comentarios en apuntes
+│   │   ├── Flashcard.php                # Tarjetas pedagógicas generadas
+│   │   ├── Post.php                     # Modelo central de apuntes con scopes de moderación
+│   │   ├── Report.php                   # Reportes comunitarios de moderación
+│   │   └── User.php                     # Usuario con rol ('student'/'admin') y estilo VARK
+│   ├── Policies/                        # Autorización granular (PostPolicy, CommentPolicy)
 │   └── Services/
-│       └── GeminiAiService.php         # Servicio exclusivo de conexión con Google Gemini API
+│       └── GeminiAiService.php          # Servicio exclusivo de conexión con Google Gemini API
 ├── database/
-│   ├── factories/                      # Factories para pruebas (User, Post, Comment)
-│   └── migrations/                     # Esquemas relacionales de base de datos
+│   ├── migrations/                      # Esquemas relacionales de base de datos
+│   └── seeders/
+│       └── DatabaseSeeder.php           # Usuarios iniciales (Admin y Estudiante de prueba)
 ├── resources/
 │   └── js/
-│       ├── Components/                 # Componentes reutilizables (Botones, Modales, Inputs)
-│       ├── Layouts/                    # Layouts Authenticated y Guest
-│       └── Pages/                      # Vistas Inertia (Dashboard, Explore, Posts/Create, Posts/Show)
+│       ├── Components/                  # MarkdownViewer (KaTeX), Cropper, ApplicationLogo, etc.
+│       ├── Layouts/                     # Layouts Authenticated y Guest con badge VARK
+│       └── Pages/                       # Vistas Inertia (Dashboard, Explore, Admin, Posts)
 ├── routes/
-│   ├── auth.php                        # Rutas de autenticación Breeze
-│   └── web.php                         # Rutas de la aplicación web
+│   ├── auth.php                         # Rutas de autenticación Breeze
+│   └── web.php                          # Rutas web de la aplicación y endpoints de Inertia
 └── tests/
-    ├── Feature/                        # Pruebas de integración (GeminiAiTest, PostPolicyTest)
-    └── Unit/                           # Pruebas unitarias
+    ├── Feature/                         # Pruebas de integración (GeminiAiTest, AdminAccessTest, etc.)
+    └── Unit/                            # Pruebas unitarias
 ```
+
+---
+
+## 📖 Documentación del Sistema
+
+Para consultar las especificaciones completas de arquitectura, diccionario de datos y guías de uso, revisa los siguientes manuales disponibles en la raíz del repositorio:
+
+- 📘 **[Manual Técnico del Sistema (MANUAL_TECNICO.md)](MANUAL_TECNICO.md)**: Arquitectura por capas, diagramas Mermaid, catálogo de endpoints, diccionario completo de tablas de base de datos, motor VARK y guía de despliegue en servidor VPS (`https://www.snapstudy.cloud`).
+- 📗 **[Manual de Usuario (Manual_de_Usuario_SnapStudy.docx)](Manual_de_Usuario_SnapStudy.docx)**: Guía ilustrada paso a paso para estudiantes y administradores con capturas de pantalla de cada módulo.
 
 ---
 
